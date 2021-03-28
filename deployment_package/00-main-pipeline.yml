@@ -1,0 +1,20 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Compliance Monitoring Tool
+Metadata: 
+  DeploymentSteps:
+    - IAM Roles
+      CodePipeline
+      Pipeline - StackSet Enable Hub All Accounts
+      Pipeline - Lambda SecurityHub Delegated Admin 
+      Pipeline - StackSet ComplianceMonitor
+
+Parameters: 
+
+# Mappings: 
+
+# Conditions: 
+
+Resources: 
+
+Outputs:
