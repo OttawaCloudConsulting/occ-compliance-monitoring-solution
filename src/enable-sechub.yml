@@ -1,0 +1,15 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Enabled Security Hub across AWS Organization
+# Metadata: 
+
+# Parameters: 
+
+# Mappings: 
+
+# Conditions: 
+
+Resources: 
+  SecurityHub:
+    Type: AWS::SecurityHub::Hub
+
+# Outputs:

@@ -1,0 +1,70 @@
+{
+    "Version": "2012-10-17",
+    "Id": "key-alz-1",
+    "Statement": [{
+            "Sid": "Allow administration of the key",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "arn:aws:iam::910383570840:root"
+            },
+            "Action": [
+                "kms:Create*",
+                "kms:Describe*",
+                "kms:Enable*",
+                "kms:List*",
+                "kms:Put*",
+                "kms:Update*",
+                "kms:Revoke*",
+                "kms:Disable*",
+                "kms:Get*",
+                "kms:Delete*",
+                "kms:ScheduleKeyDeletion",
+                "kms:CancelKeyDeletion"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "Allow use of the key",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": [
+                    "${aws_iam_role.IAMRoleSecHubDelAdminLambda.arn}",
+                    "${aws_iam_role.IAMRoleCodePipeline.arn}"
+                ]
+            },
+            "Action": [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Sid": "Allow organizational use of the key",
+            "Effect": "Allow",
+            "Principal": {
+                "AWS": "*"
+            },
+            "Action": [
+                "kms:Encrypt",
+                "kms:Decrypt",
+                "kms:ReEncrypt*",
+                "kms:GenerateDataKey*",
+                "kms:DescribeKey"
+            ],
+            "Resource": "*",
+            "Condition": {
+                "ArnLike": {
+                    "aws:PrincipalARN": [
+                        "arn:aws:iam::*:role/AWSCloudFormationStackSetExecutionRole",
+                        "arn:aws:iam::*:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_AdministratorAccess_*",
+                        "arn:aws:iam::*:role/aws-reserved/sso.amazonaws.com/*/AWSReservedSSO_AdministratorAccess_*",
+                        "arn:aws:iam::*:role/aws-landingzone-PublisherLambdaRole*"
+                    ]
+                }
+            }
+        }
+    ]
+}

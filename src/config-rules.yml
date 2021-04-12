@@ -5,8 +5,13 @@ Description: >-
 Parameters: 
   pDefaultRegion:
     Type: String
-    Default: us-east-1
-    Description: 'Default region is used as to remove collisions from deploying existing IAM Roles'
+    Default: ca-central-1
+  pS3BucketLambdaCode:
+    Type: String
+    Default: occ-910383570840-compliance-monitoring-solution
+  pS3CodeKey:
+    Type: String
+    Default: compliancemonitoring/lambda_map_config_findings_to_sechub.py.zip
   AccessKeysRotatedParamMaxAccessKeyAge:
     Default: '90'
     Type: String
@@ -221,7 +226,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'The credentials are audited for authorized devices, users, and processes by ensuring IAM access keys are rotated as per organizational policy. '
-      ConfigRuleName: itsg33-access-keys-rotated
+      ConfigRuleName: itsg33-access-keys-rotated-medium
       InputParameters:
         maxAccessKeyAge:
           Fn::If:
@@ -236,7 +241,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure network integrity is protected by ensuring X509 certificates are issued by AWS ACM. These certificates must be valid and unexpired.'
-      ConfigRuleName: itsg33-acm-certificate-expiration-check
+      ConfigRuleName: itsg33-acm-certificate-expiration-check-medium
       InputParameters:
         daysToExpiration:
           Fn::If:
@@ -254,7 +259,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure that your Elastic Load Balancers (ELB) are configured to drop http headers. Because sensitive data can exist, enable encryption in transit to help protect that data.'
-      ConfigRuleName: itsg33-alb-http-drop-invalid-header-enabled
+      ConfigRuleName: itsg33-alb-http-drop-invalid-header-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -266,7 +271,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'To help protect data in transit, ensure that your Application Load Balancer automatically redirects unencrypted HTTP requests to HTTPS. Because sensitive data can exist, enable encryption in transit to help protect that data.'
-      ConfigRuleName: itsg33-alb-http-to-https-redirection-check
+      ConfigRuleName: itsg33-alb-http-to-https-redirection-check-medium
       Source:
         Owner: AWS
         SourceIdentifier: ALB_HTTP_TO_HTTPS_REDIRECTION_CHECK
@@ -275,7 +280,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure AWS WAF is enabled on Elastic Load Balancers (ELB) to help protect web applications. A WAF helps to protect your web applications or APIs against common web exploits.'
-      ConfigRuleName: itsg33-alb-waf-enabled
+      ConfigRuleName: itsg33-alb-waf-enabled-low
       Scope:
         ComplianceResourceTypes:
         - AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -287,7 +292,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: "To help protect data at rest, ensure encryption is enabled for your API Gateway stage's cache. Because sensitive data can be captured for the API method, enable encryption at rest to help protect that data."
-      ConfigRuleName: itsg33-api-gw-cache-enabled-and-encrypted
+      ConfigRuleName: itsg33-api-gw-cache-enabled-and-encrypted-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::ApiGateway::Stage
@@ -299,7 +304,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'API Gateway logging displays detailed views of users who accessed the API and the way they accessed the API. This insight enables visibility of user activities.'
-      ConfigRuleName: itsg33-api-gw-execution-logging-enabled
+      ConfigRuleName: itsg33-api-gw-execution-logging-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::ApiGateway::Stage
@@ -312,7 +317,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'The Elastic Load Balancer (ELB) health checks for Amazon Elastic Compute Cloud (Amazon EC2) Auto Scaling groups support maintenance of adequate capacity and availability.'
-      ConfigRuleName: itsg33-autoscaling-group-elb-healthcheck-required
+      ConfigRuleName: itsg33-autoscaling-group-elb-healthcheck-required-low
       Scope:
         ComplianceResourceTypes:
         - AWS::AutoScaling::AutoScalingGroup
@@ -324,7 +329,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Use Amazon CloudWatch to centrally collect and manage log event activity. Inclusion of AWS CloudTrail data provides details of API call activity within your AWS account.'
-      ConfigRuleName: itsg33-cloud-trail-cloud-watch-logs-enabled
+      ConfigRuleName: itsg33-cloud-trail-cloud-watch-logs-enabled-low
       Source:
         Owner: AWS
         SourceIdentifier: CLOUD_TRAIL_CLOUD_WATCH_LOGS_ENABLED
@@ -333,7 +338,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'AWS CloudTrail can help in non-repudiation by recording AWS Management Console actions and API calls. You can identify the users and AWS accounts that called an AWS service, the source IP address where the calls generated, and the timings of the calls.'
-      ConfigRuleName: itsg33-cloudtrail-enabled
+      ConfigRuleName: itsg33-cloudtrail-enabled-high
       Source:
         Owner: AWS
         SourceIdentifier: CLOUD_TRAIL_ENABLED
@@ -342,7 +347,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Because sensitive data may exist and to help protect data at rest, ensure encryption is enabled for your AWS CloudTrail trails.'
-      ConfigRuleName: itsg33-cloud-trail-encryption-enabled
+      ConfigRuleName: itsg33-cloud-trail-encryption-enabled-medium
       Source:
         Owner: AWS
         SourceIdentifier: CLOUD_TRAIL_ENCRYPTION_ENABLED
@@ -351,7 +356,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Utilize AWS CloudTrail log file validation to check the integrity of CloudTrail logs. Log file validation helps determine if a log file was modified or deleted or unchanged after CloudTrail delivered it.'
-      ConfigRuleName: itsg33-cloud-trail-log-file-validation-enabled
+      ConfigRuleName: itsg33-cloud-trail-log-file-validation-enabled-low
       Source:
         Owner: AWS
         SourceIdentifier: CLOUD_TRAIL_LOG_FILE_VALIDATION_ENABLED
@@ -360,7 +365,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'The collection of Simple Storage Service (Amazon S3) data events helps in detecting any anomalous activity. The details include AWS account information that accessed an Amazon S3 bucket, IP address, and time of event.'
-      ConfigRuleName: itsg33-cloudtrail-s3-dataevents-enabled
+      ConfigRuleName: itsg33-cloudtrail-s3-dataevents-enabled-low
       Source:
         Owner: AWS
         SourceIdentifier: CLOUDTRAIL_S3_DATAEVENTS_ENABLED
@@ -369,7 +374,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'This rule helps ensure the use of AWS recommended security best practices for AWS CloudTrail, by checking for the enablement of multiple settings. These include the use of log encryption, log validation, and enabling AWS CloudTrail in multiple regions.'
-      ConfigRuleName: itsg33-cloudtrail-security-trail-enabled
+      ConfigRuleName: itsg33-cloudtrail-security-trail-enabled-medium
       Source:
         Owner: AWS
         SourceIdentifier: CLOUDTRAIL_SECURITY_TRAIL_ENABLED
@@ -378,7 +383,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Amazon CloudWatch alarms alert when a metric breaches the threshold for a specified number of evaluation periods. The alarm performs one or more actions based on the value of the metric or expression relative to a threshold over a number of time periods. '
-      ConfigRuleName: itsg33-cloudwatch-alarm-action-check
+      ConfigRuleName: itsg33-cloudwatch-alarm-action-check-low
       InputParameters:
         alarmActionRequired: 'TRUE'
         insufficientDataActionRequired: 'TRUE'
@@ -394,7 +399,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'To help protect sensitive data at rest, ensure encryption is enabled for your Amazon CloudWatch Log Groups.'
-      ConfigRuleName: itsg33-cloudwatch-log-group-encrypted
+      ConfigRuleName: itsg33-cloudwatch-log-group-encrypted-medium
       Source:
         Owner: AWS
         SourceIdentifier: CLOUDWATCH_LOG_GROUP_ENCRYPTED
@@ -403,7 +408,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Enable key rotation to ensure that keys are rotated once they have reached the end of their crypto period.'
-      ConfigRuleName: itsg33-cmk-backing-key-rotation-enabled
+      ConfigRuleName: itsg33-cmk-backing-key-rotation-enabled-medium
       Source:
         Owner: AWS
         SourceIdentifier: CMK_BACKING_KEY_ROTATION_ENABLED
@@ -412,7 +417,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure authentication credentials AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY do not exist within AWS Codebuild project environments. Do not store these variables in clear text.'
-      ConfigRuleName: itsg33-codebuild-project-envvar-awscred-check
+      ConfigRuleName: itsg33-codebuild-project-envvar-awscred-check-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::CodeBuild::Project
@@ -424,7 +429,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure the GitHub or Bitbucket source repository URL does not contain personal access tokens, user name and password within AWS Codebuild project environments.'
-      ConfigRuleName: itsg33-codebuild-project-source-repo-url-check
+      ConfigRuleName: itsg33-codebuild-project-source-repo-url-check-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::CodeBuild::Project
@@ -436,7 +441,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: ;Ensure a minimum duration of event log data is retained for your log groups to help with troubleshooting and forensics investigations. The lack of available past event log data makes it difficult to reconstruct and identify potentially malicious events.
-      ConfigRuleName: itsg33-cw-loggroup-retention-period-check
+      ConfigRuleName: itsg33-cw-loggroup-retention-period-check-medium
       Source:
         Owner: AWS
         SourceIdentifier: CW_LOGGROUP_RETENTION_PERIOD_CHECK
@@ -445,7 +450,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'The backup feature of Amazon RDS creates backups of your databases and transaction logs. Amazon RDS automatically creates a storage volume snapshot of your DB instance, backing up the entire DB instance.'
-      ConfigRuleName: itsg33-db-instance-backup-enabled
+      ConfigRuleName: itsg33-db-instance-backup-enabled-low
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBInstance
@@ -457,7 +462,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Manage access to the AWS Cloud by ensuring DMS replication instances cannot be publicly accessed. DMS replication instances can contain sensitive information and access control is required for such accounts.'
-      ConfigRuleName: itsg33-dms-replication-not-public
+      ConfigRuleName: itsg33-dms-replication-not-public-critical
       Scope:
         ComplianceResourceTypes: []
       Source:
@@ -468,7 +473,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Amazon DynamoDB auto scaling uses the AWS Application Auto Scaling service to adjust provisioned throughput capacity that automatically responds to actual traffic patterns.'
-      ConfigRuleName: itsg33-dynamodb-autoscaling-enabled
+      ConfigRuleName: itsg33-dynamodb-autoscaling-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::DynamoDB::Table
@@ -480,7 +485,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'To help with data back-up processes, ensure your Amazon DynamoDB tables are a part of an AWS Backup plan. AWS Backup is a fully managed backup service with a policy-based backup solution.'
-      ConfigRuleName: itsg33-dynamodb-in-backup-plan
+      ConfigRuleName: itsg33-dynamodb-in-backup-plan-low
       Source:
         Owner: AWS
         SourceIdentifier: DYNAMODB_IN_BACKUP_PLAN
@@ -489,7 +494,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Enable this rule to check that information has been backed up. It also maintains the backups by ensuring that point-in-time recovery is enabled in Amazon DynamoDB. The recovery maintains continuous backups of your table for the last 35 days.'
-      ConfigRuleName: itsg33-dynamodb-pitr-enabled
+      ConfigRuleName: itsg33-dynamodb-pitr-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::DynamoDB::Table
@@ -501,7 +506,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure that encryption is enabled for your Amazon DynamoDB tables. Because sensitive data can exist at rest in these tables, enable encryption at rest to help protect that data.'
-      ConfigRuleName: itsg33-dynamodb-table-encrypted-kms
+      ConfigRuleName: itsg33-dynamodb-table-encrypted-kms-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::DynamoDB::Table
@@ -513,7 +518,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'To help with data back-up processes, ensure your Amazon Elastic Block Store (Amazon EBS) volumes are a part of an AWS Backup plan. AWS Backup is a fully managed backup service with a policy-based backup solution.'
-      ConfigRuleName: itsg33-ebs-in-backup-plan
+      ConfigRuleName: itsg33-ebs-in-backup-plan-low
       Source:
         Owner: AWS
         SourceIdentifier: EBS_IN_BACKUP_PLAN
@@ -522,7 +527,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Manage access to the AWS Cloud by ensuring EBS snapshots are not publicly restorable. EBS volume snapshots can contain sensitive information and access control is required for such accounts.'
-      ConfigRuleName: itsg33-ebs-snapshot-public-restorable-check
+      ConfigRuleName: itsg33-ebs-snapshot-public-restorable-check-critical
       Source:
         Owner: AWS
         SourceIdentifier: EBS_SNAPSHOT_PUBLIC_RESTORABLE_CHECK
@@ -531,7 +536,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'To help protect data at rest, ensure that encryption is enabled for your Amazon Elastic Block Store (Amazon EBS) volumes. Because sensitive data can exist at rest in these volumes, enable encryption at rest to help protect that data.'
-      ConfigRuleName: itsg33-ec2-ebs-encryption-by-default
+      ConfigRuleName: itsg33-ec2-ebs-encryption-by-default-medium
       Source:
         Owner: AWS
         SourceIdentifier: EC2_EBS_ENCRYPTION_BY_DEFAULT
@@ -540,7 +545,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure the Instance Metadata Service Version 2 (IMDSv2) method is enabled to help protect access and control of Amazon Elastic Compute Cloud (Amazon EC2) instance metadata.'
-      ConfigRuleName: itsg33-ec2-imdsv2-check
+      ConfigRuleName: itsg33-ec2-imdsv2-check-high
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::Instance
@@ -552,7 +557,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Enable this rule to help improve Amazon Elastic Compute Cloud (Amazon EC2) instance monitoring on the Amazon EC2 console, which displays monitoring graphs with a 1-minute period for the instance.'
-      ConfigRuleName: itsg33-ec2-instance-detailed-monitoring-enabled
+      ConfigRuleName: itsg33-ec2-instance-detailed-monitoring-enabled-low
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::Instance
@@ -564,7 +569,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'An inventory of the software platforms and applications within the organization is possible by managing Amazon Elastic Compute Cloud (Amazon EC2) instances with AWS Systems Manager.'
-      ConfigRuleName: itsg33-ec2-instance-managed-by-systems-manager
+      ConfigRuleName: itsg33-ec2-instance-managed-by-systems-manager-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::Instance
@@ -577,7 +582,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Manage access to the AWS Cloud by ensuring Amazon Elastic Compute Cloud (Amazon EC2) instances cannot be publicly accessed. Amazon EC2 instances can contain sensitive information and access control is required for such accounts.'
-      ConfigRuleName: itsg33-ec2-instance-no-public-ip
+      ConfigRuleName: itsg33-ec2-instance-no-public-ip-high
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::Instance
@@ -589,7 +594,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Use AWS Systems Manager Associations to help with inventory of software platforms and applications within an organization.'
-      ConfigRuleName: itsg33-ec2-managedinstance-association-compliance-status-check
+      ConfigRuleName: itsg33-ec2-managedinstance-association-compliance-status-check-low
       Scope:
         ComplianceResourceTypes:
         - AWS::SSM::AssociationCompliance
@@ -601,7 +606,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Enable this rule to help with identification and documentation of Amazon Elastic Compute Cloud (Amazon EC2) vulnerabilities.'
-      ConfigRuleName: itsg33-ec2-managedinstance-patch-compliance-status-check
+      ConfigRuleName: itsg33-ec2-managedinstance-patch-compliance-status-check-high
       Scope:
         ComplianceResourceTypes:
         - AWS::SSM::PatchCompliance
@@ -613,7 +618,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: "Enable this rule to help with the baseline configuration of Elastic Compute Cloud (Amazon EC2) instances by checking whether Amazon EC2 instances have been stopped for more than the allowed number of days, according to your organization's standards."
-      ConfigRuleName: itsg33-ec2-stopped-instance
+      ConfigRuleName: itsg33-ec2-stopped-instance-medium
       Source:
         Owner: AWS
         SourceIdentifier: EC2_STOPPED_INSTANCE
@@ -622,7 +627,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'This rule ensures that Amazon Elastic Block Store volumes that are attached to Amazon Elastic Compute Cloud (Amazon EC2) instances are marked for deletion when an instance is terminated.'
-      ConfigRuleName: itsg33-ec2-volume-inuse-check
+      ConfigRuleName: itsg33-ec2-volume-inuse-check-medium
       InputParameters:
         deleteOnTermination:
           Fn::If:
@@ -640,7 +645,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Because sensitive data can exist and to help protect data at rest, ensure encryption is enabled for your Amazon Elastic File System (EFS).'
-      ConfigRuleName: itsg33-efs-encrypted-check
+      ConfigRuleName: itsg33-efs-encrypted-check-medium
       Source:
         Owner: AWS
         SourceIdentifier: EFS_ENCRYPTED_CHECK
@@ -649,7 +654,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'To help with data back-up processes, ensure your Amazon Elastic File System (Amazon EFS) file systems are a part of an AWS Backup plan. AWS Backup is a fully managed backup service with a policy-based backup solution.'
-      ConfigRuleName: itsg33-efs-in-backup-plan
+      ConfigRuleName: itsg33-efs-in-backup-plan-medium
       Source:
         Owner: AWS
         SourceIdentifier: EFS_IN_BACKUP_PLAN
@@ -658,7 +663,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'When automatic backups are enabled, Amazon ElastiCache creates a backup of the cluster on a daily basis. The backup can be retained for a number of days as specified by your organization. Automatic backups can help guard against data loss.'
-      ConfigRuleName: itsg33-elasticache-redis-cluster-automatic-backup-check
+      ConfigRuleName: itsg33-elasticache-redis-cluster-automatic-backup-check-low
       Source:
         Owner: AWS
         SourceIdentifier: ELASTICACHE_REDIS_CLUSTER_AUTOMATIC_BACKUP_CHECK
@@ -667,7 +672,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Because sensitive data can exist and to help protect data at rest, ensure encryption is enabled for your Amazon Elasticsearch Service (Amazon ES) domains.'
-      ConfigRuleName: itsg33-elasticsearch-encrypted-at-rest
+      ConfigRuleName: itsg33-elasticsearch-encrypted-at-rest-medium
       Source:
         Owner: AWS
         SourceIdentifier: ELASTICSEARCH_ENCRYPTED_AT_REST
@@ -676,7 +681,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Manage access to the AWS Cloud by ensuring Amazon Elasticsearch Service (Amazon ES) Domains are within an Amazon Virtual Private Cloud (Amazon VPC).'
-      ConfigRuleName: itsg33-elasticsearch-in-vpc-only
+      ConfigRuleName: itsg33-elasticsearch-in-vpc-only-critical
       Source:
         Owner: AWS
         SourceIdentifier: ELASTICSEARCH_IN_VPC_ONLY
@@ -685,7 +690,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure node-to-node encryption for Amazon Elasticsearch Service is enabled. Node-to-node encryption enables TLS 1.2 encryption for all communications within the Amazon Virtual Private Cloud (Amazon VPC).'
-      ConfigRuleName: itsg33-elasticsearch-node-to-node-encryption-check
+      ConfigRuleName: itsg33-elasticsearch-node-to-node-encryption-check-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::Elasticsearch::Domain
@@ -697,7 +702,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Because sensitive data can exist and to help protect data at transit, ensure encryption is enabled for your Elastic Load Balancing.'
-      ConfigRuleName: itsg33-elb-acm-certificate-required
+      ConfigRuleName: itsg33-elb-acm-certificate-required-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::ElasticLoadBalancing::LoadBalancer
@@ -709,7 +714,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Enable cross-zone load balancing for your Elastic Load Balancers (ELBs) to help maintain adequate capacity and availability. The cross-zone load balancing reduces the need to maintain equivalent numbers of instances in each enabled availability zone.'
-      ConfigRuleName: itsg33-elb-cross-zone-load-balancing-enabled
+      ConfigRuleName: itsg33-elb-cross-zone-load-balancing-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::ElasticLoadBalancing::LoadBalancer
@@ -721,7 +726,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'This rule ensures that Elastic Load Balancing has deletion protection enabled. Use this feature to prevent your load balancer from being accidentally or maliciously deleted, which can lead to loss of availability for your applications.'
-      ConfigRuleName: itsg33-elb-deletion-protection-enabled
+      ConfigRuleName: itsg33-elb-deletion-protection-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::ElasticLoadBalancingV2::LoadBalancer
@@ -733,7 +738,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Elastic Load Balancing activity is a central point of communication within an environment. Ensure ELB logging is enabled. The collected data provides detailed information about requests sent to the ELB.'
-      ConfigRuleName: itsg33-elb-logging-enabled
+      ConfigRuleName: itsg33-elb-logging-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::ElasticLoadBalancing::LoadBalancer
@@ -746,7 +751,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure that your Elastic Load Balancers (ELBs) are configured with SSL or HTTPS listeners. Because sensitive data can exist, enable encryption in transit to help protect that data.'
-      ConfigRuleName: itsg33-elb-tls-https-listeners-only
+      ConfigRuleName: itsg33-elb-tls-https-listeners-only-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::ElasticLoadBalancing::LoadBalancer
@@ -758,7 +763,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'The access permissions and authorizations can be managed and incorporated with the principles of least privilege and separation of duties, by enabling Kerberos for Amazon EMR clusters.'
-      ConfigRuleName: itsg33-emr-kerberos-enabled
+      ConfigRuleName: itsg33-emr-kerberos-enabled-low
       Source:
         Owner: AWS
         SourceIdentifier: EMR_KERBEROS_ENABLED
@@ -767,7 +772,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Manage access to the AWS Cloud by ensuring Amazon EMR cluster master nodes cannot be publicly accessed. Amazon EMR cluster master nodes can contain sensitive information and access control is required for such accounts.'
-      ConfigRuleName: itsg33-emr-master-no-public-ip
+      ConfigRuleName: itsg33-emr-master-no-public-ip-high
       Scope:
         ComplianceResourceTypes: []
       Source:
@@ -778,7 +783,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Because senstive data can exist and to help protect data at rest, ensure encryption is enabled for your Amazon Elastic Block Store (Amazon EBS) volumes.'
-      ConfigRuleName: itsg33-encrypted-volumes
+      ConfigRuleName: itsg33-encrypted-volumes-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::Volume
@@ -790,7 +795,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Amazon GuardDuty can help to monitor and detect potential cybersecurity events by using threat intelligence feeds.'
-      ConfigRuleName: itsg33-guardduty-enabled-centralized
+      ConfigRuleName: itsg33-guardduty-enabled-centralized-medium
       Source:
         Owner: AWS
         SourceIdentifier: GUARDDUTY_ENABLED_CENTRALIZED
@@ -799,7 +804,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Amazon GuardDuty helps you understand the impact of an incident by classifying findings by severity: low, medium, and high. You can use these classifications for determining remediation strategies and priorities.'
-      ConfigRuleName: itsg33-guardduty-non-archived-findings
+      ConfigRuleName: itsg33-guardduty-non-archived-findings-low
       InputParameters:
         daysHighSev:
           Fn::If:
@@ -824,7 +829,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'AWS Identity and Access Management (IAM) can help you incorporate the principles of least privilege and separation of duties with access permissions and authorizations, by ensuring that IAM groups have at least one IAM user.'
-      ConfigRuleName: itsg33-iam-group-has-users-check
+      ConfigRuleName: itsg33-iam-group-has-users-check-low
       Scope:
         ComplianceResourceTypes:
         - AWS::IAM::Group
@@ -836,7 +841,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Ensure an AWS Identity and Access Management (IAM) user, IAM role or IAM group does not have an inline policy to control access to systems and assets. AWS recommends to use managed policies instead of inline policies.'
-      ConfigRuleName: itsg33-iam-no-inline-policy-check
+      ConfigRuleName: itsg33-iam-no-inline-policy-check-low
       Scope:
         ComplianceResourceTypes:
         - AWS::IAM::User
@@ -850,7 +855,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'The identities and the credentials are issued, managed, and verified based on an organizational IAM password policy.'
-      ConfigRuleName: itsg33-iam-password-policy
+      ConfigRuleName: itsg33-iam-password-policy-medium
       InputParameters:
         MaxPasswordAge:
           Fn::If:
@@ -895,7 +900,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'AWS Identity and Access Management (IAM) can help you incorporate the principles of least privilege with access permissions and authorizations, restricting policies from containing "Effect": "Allow" with "Action": "*" over "Resource": "*".'
-      ConfigRuleName: itsg33-iam-policy-no-statements-with-admin-access
+      ConfigRuleName: itsg33-iam-policy-no-statements-with-admin-access-high
       Scope:
         ComplianceResourceTypes:
         - AWS::IAM::Policy
@@ -907,7 +912,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Access to systems and assets can be controlled by checking that the root user does not have access keys attached to their AWS Identity and Access Management (IAM) role. Ensure that the root access keys are deleted.'
-      ConfigRuleName: itsg33-iam-root-access-key-check
+      ConfigRuleName: itsg33-iam-root-access-key-check-critical
       Source:
         Owner: AWS
         SourceIdentifier: IAM_ROOT_ACCESS_KEY_CHECK
@@ -916,7 +921,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'AWS Identity and Access Management (IAM) can help you restrict access permissions and authorizations, by ensuring IAM users are members of at least one group.'
-      ConfigRuleName: itsg33-iam-user-group-membership-check
+      ConfigRuleName: itsg33-iam-user-group-membership-check-low
       Scope:
         ComplianceResourceTypes:
         - AWS::IAM::User
@@ -928,7 +933,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: 'Enable this rule to restrict access to resources in the AWS Cloud. This rule ensures multi-factor authentication (MFA) is enabled for all IAM users. MFA adds an extra layer of protection on top of a user name and password.'
-      ConfigRuleName: itsg33-iam-user-mfa-enabled
+      ConfigRuleName: itsg33-iam-user-mfa-enabled-medium
       Source:
         Owner: AWS
         SourceIdentifier: IAM_USER_MFA_ENABLED
@@ -937,7 +942,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description:  This rule ensures AWS Identity and Access Management (IAM) policies are attached only to groups or roles to control access to systems and assets.s
-      ConfigRuleName: itsg33-iam-user-no-policies-check
+      ConfigRuleName: itsg33-iam-user-no-policies-check-low
       Scope:
         ComplianceResourceTypes:
         - AWS::IAM::User
@@ -949,7 +954,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: AWS Identity and Access Management (IAM) can help you with access permissions and authorizations by checking for IAM passwords and access keys that are not used for a specified time period.
-      ConfigRuleName: itsg33-iam-user-unused-credentials-check
+      ConfigRuleName: itsg33-iam-user-unused-credentials-check-medium
       InputParameters:
         maxCredentialUsageAge:
           Fn::If:
@@ -964,7 +969,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Amazon Elastic Compute Cloud (Amazon EC2) Security Groups can help manage network access by providing stateful filtering of ingress and egress network traffic to AWS resources.
-      ConfigRuleName: itsg33-restricted-ssh
+      ConfigRuleName: itsg33-restricted-ssh-high
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::SecurityGroup
@@ -976,7 +981,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Deploy Elastic Compute Cloud (EC2) instances within an Virtual Private Cloud (VPC) to enable secure communication between an instance and other services within the amazon VPC, without requiring an internet gateway, NAT device, or VPN connection. 
-      ConfigRuleName: itsg33-ec2-instances-in-vpc
+      ConfigRuleName: itsg33-ec2-instances-in-vpc-high
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::Instance
@@ -988,7 +993,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring that internet gateways are only attached to authorized Amazon Virtual Private Cloud (Amazon VPC).
-      ConfigRuleName: itsg33-internet-gateway-authorized-vpc-only
+      ConfigRuleName: itsg33-internet-gateway-authorized-vpc-only-high
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::InternetGateway
@@ -1000,7 +1005,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help protect data at rest, ensure necessary customer master keys (CMKs) are not scheduled for deletion in AWS Key Management Service (AWS KMS).
-      ConfigRuleName: itsg33-kms-cmk-not-scheduled-for-deletion
+      ConfigRuleName: itsg33-kms-cmk-not-scheduled-for-deletion-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::KMS::Key
@@ -1012,7 +1017,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring AWS Lambda functions cannot be publicly accessed. Public access can potentially lead to degradation of availability of resources.
-      ConfigRuleName: itsg33-lambda-function-public-access-prohibited
+      ConfigRuleName: itsg33-lambda-function-public-access-prohibited-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::Lambda::Function
@@ -1024,7 +1029,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Deploy AWS Lambda functions within an Amazon Virtual Private Cloud (Amazon VPC) for a secure communication between a function and other services within the Amazon VPC.
-      ConfigRuleName: itsg33-lambda-inside-vpc
+      ConfigRuleName: itsg33-lambda-inside-vpc-low
       Scope:
         ComplianceResourceTypes:
         - AWS::Lambda::Function
@@ -1036,7 +1041,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring that MFA is enabled for all AWS Identity and Access Management (IAM) users that have a console password. MFA adds an extra layer of protection on top of a user name and password. 
-      ConfigRuleName: itsg33-mfa-enabled-for-iam-console-access
+      ConfigRuleName: itsg33-mfa-enabled-for-iam-console-access-medium
       Source:
         Owner: AWS
         SourceIdentifier: MFA_ENABLED_FOR_IAM_CONSOLE_ACCESS
@@ -1045,7 +1050,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: AWS CloudTrail records AWS Management Console actions and API calls. 
-      ConfigRuleName: itsg33-multi-region-cloudtrail-enabled
+      ConfigRuleName: itsg33-multi-region-cloudtrail-enabled-high
       Source:
         Owner: AWS
         SourceIdentifier: MULTI_REGION_CLOUD_TRAIL_ENABLED
@@ -1054,7 +1059,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Enable Amazon Relational Database Service (Amazon RDS) to help monitor Amazon RDS availability. This provides detailed visibility into the health of your Amazon RDS database instances. 
-      ConfigRuleName: itsg33-rds-enhanced-monitoring-enabled
+      ConfigRuleName: itsg33-rds-enhanced-monitoring-enabled-low
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBInstance
@@ -1066,7 +1071,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help with data back-up processes, ensure your Amazon Relational Database Service (Amazon RDS) instances are a part of an AWS Backup plan. AWS Backup is a fully managed backup service with a policy-based backup solution.
-      ConfigRuleName: itsg33-rds-in-backup-plan
+      ConfigRuleName: itsg33-rds-in-backup-plan-low
       Source:
         Owner: AWS
         SourceIdentifier: RDS_IN_BACKUP_PLAN
@@ -1075,7 +1080,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Ensure Amazon Relational Database Service (Amazon RDS) instances have deletion protection enabled.
-      ConfigRuleName: itsg33-rds-instance-deletion-protection-enabled
+      ConfigRuleName: itsg33-rds-instance-deletion-protection-enabled-low
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBInstance
@@ -1087,7 +1092,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring that Amazon Relational Database Service (Amazon RDS) instances are not public. 
-      ConfigRuleName: itsg33-rds-instance-public-access-check
+      ConfigRuleName: itsg33-rds-instance-public-access-check-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBInstance
@@ -1099,7 +1104,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help with logging and monitoring within your environment, ensure Amazon Relational Database Service (Amazon RDS) logging is enabled. With Amazon RDS logging, you can capture events such as connections, disconnections, queries, or tables queried.
-      ConfigRuleName: itsg33-rds-logging-enabled
+      ConfigRuleName: itsg33-rds-logging-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBInstance
@@ -1111,7 +1116,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Multi-AZ support in Amazon Relational Database Service (Amazon RDS) provides enhanced availability and durability for database instances.
-      ConfigRuleName: itsg33-rds-multi-az-support
+      ConfigRuleName: itsg33-rds-multi-az-support-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBInstance
@@ -1123,7 +1128,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Ensure that encryption is enabled for your Amazon Relational Database Service (Amazon RDS) snapshots. Because sensitive data can exist at rest, enable encryption at rest to help protect that data.
-      ConfigRuleName: itsg33-rds-snapshot-encrypted
+      ConfigRuleName: itsg33-rds-snapshot-encrypted-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBSnapshot
@@ -1136,7 +1141,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring that Amazon Relational Database Service (Amazon RDS) instances are not public.
-      ConfigRuleName: itsg33-rds-snapshots-public-prohibited
+      ConfigRuleName: itsg33-rds-snapshots-public-prohibited-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBSnapshot
@@ -1149,7 +1154,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help protect data at rest, ensure that encryption is enabled for your Amazon Relational Database Service (Amazon RDS) instances. Because sensitive data can exist at rest in Amazon RDS instances, enable encryption at rest to help protect that data.
-      ConfigRuleName: itsg33-rds-storage-encrypted
+      ConfigRuleName: itsg33-rds-storage-encrypted-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::RDS::DBInstance
@@ -1161,7 +1166,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To protect data at rest, ensure that encryption is enabled for your Amazon Redshift clusters. You must also ensure that required configurations are deployed on Amazon Redshift clusters. 
-      ConfigRuleName: itsg33-redshift-cluster-configuration-check
+      ConfigRuleName: itsg33-redshift-cluster-configuration-check-medium
       InputParameters:
         clusterDbEncrypted: 'TRUE'
         loggingEnabled: 'TRUE'
@@ -1176,7 +1181,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring that Amazon Redshift clusters are not public. Amazon Redshift clusters can contain sensitive information and principles and access control is required for such accounts.
-      ConfigRuleName: itsg33-redshift-cluster-public-access-check
+      ConfigRuleName: itsg33-redshift-cluster-public-access-check-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::Redshift::Cluster
@@ -1188,7 +1193,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Ensure that your Amazon Redshift clusters require TLS/SSL encryption to connect to SQL clients. Because sensitive data can exist, enable encryption in transit to help protect that data.
-      ConfigRuleName: itsg33-redshift-require-tls-ssl
+      ConfigRuleName: itsg33-redshift-require-tls-ssl-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::Redshift::Cluster
@@ -1200,7 +1205,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring common ports are restricted on Amazon Elastic Compute Cloud (Amazon EC2) security groups.
-      ConfigRuleName: itsg33-restricted-common-ports
+      ConfigRuleName: itsg33-restricted-common-ports-high
       InputParameters:
         blockedPort1:
           Fn::If:
@@ -1238,7 +1243,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring hardware MFA is enabled for the root user. The root user is the most privileged user in an AWS account. The MFA adds an extra layer of protection for a user name and password.
-      ConfigRuleName: itsg33-root-account-hardware-mfa-enabled
+      ConfigRuleName: itsg33-root-account-hardware-mfa-enabled-critical
       Source:
         Owner: AWS
         SourceIdentifier: ROOT_ACCOUNT_HARDWARE_MFA_ENABLED
@@ -1247,7 +1252,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring MFA is enabled for the root user. The root user is the most privileged user in an AWS account.
-      ConfigRuleName: itsg33-root-account-mfa-enabled
+      ConfigRuleName: itsg33-root-account-mfa-enabled-critical
       Source:
         Owner: AWS
         SourceIdentifier: ROOT_ACCOUNT_MFA_ENABLED
@@ -1256,7 +1261,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring that Amazon Simple Storage Service (Amazon S3) buckets cannot be publicly accessed.
-      ConfigRuleName: itsg33-s3-account-level-public-access-blocks
+      ConfigRuleName: itsg33-s3-account-level-public-access-blocks-medium
       InputParameters:
         BlockPublicAcls:
           Fn::If:
@@ -1289,7 +1294,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Ensure that your Amazon Simple Storage Service (Amazon S3) bucket has lock enabled, by default. Because sensitive data can exist at rest in S3 buckets, enforce object locks at rest to help protect that data.
-      ConfigRuleName: itsg33-s3-bucket-default-lock-enabled
+      ConfigRuleName: itsg33-s3-bucket-default-lock-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1301,7 +1306,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Amazon Simple Storage Service (Amazon S3) server access logging provides a method to monitor the network for potential cybersecurity events. 
-      ConfigRuleName: itsg33-s3-bucket-logging-enabled
+      ConfigRuleName: itsg33-s3-bucket-logging-enabled-low
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1313,7 +1318,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to the AWS Cloud by enabling s3_ bucket_policy_grantee_check.
-      ConfigRuleName: itsg33-s3-bucket-policy-grantee-check
+      ConfigRuleName: itsg33-s3-bucket-policy-grantee-check-low
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1325,7 +1330,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by only allowing authorized users, processes, and devices access to Amazon Simple Storage Service (Amazon S3) buckets. The management of access should be consistent with the classification of the data.
-      ConfigRuleName: itsg33-s3-bucket-public-read-prohibited
+      ConfigRuleName: itsg33-s3-bucket-public-read-prohibited-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1337,7 +1342,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by only allowing authorized users, processes, and devices access to Amazon Simple Storage Service (Amazon S3) buckets. The management of access should be consistent with the classification of the data.
-      ConfigRuleName: itsg33-s3-bucket-public-write-prohibited
+      ConfigRuleName: itsg33-s3-bucket-public-write-prohibited-critical
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1349,7 +1354,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Amazon Simple Storage Service (Amazon S3) Cross-Region Replication (CRR) supports maintaining adequate capacity and availability.
-      ConfigRuleName: itsg33-s3-bucket-replication-enabled
+      ConfigRuleName: itsg33-s3-bucket-replication-enabled-low
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1361,7 +1366,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help protect data at rest, ensure encryption is enabled for your Amazon Simple Storage Service (Amazon S3) buckets. Because sensitive data can exist at rest in Amazon S3 buckets, enable encryption to help protect that data.
-      ConfigRuleName: itsg33-s3-bucket-server-side-encryption-enabled
+      ConfigRuleName: itsg33-s3-bucket-server-side-encryption-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1373,7 +1378,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help protect data in transit, ensure that your Amazon Simple Storage Service (Amazon S3) buckets require requests to use Secure Socket Layer (SSL). Because sensitive data can exist, enable encryption in transit to help protect that data.
-      ConfigRuleName: itsg33-s3-bucket-ssl-requests-only
+      ConfigRuleName: itsg33-s3-bucket-ssl-requests-only-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1385,7 +1390,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Amazon Simple Storage Service (Amazon S3) bucket versioning helps keep multiple variants of an object in the same Amazon S3 bucket.
-      ConfigRuleName: itsg33-s3-bucket-versioning-enabled
+      ConfigRuleName: itsg33-s3-bucket-versioning-enabled-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::S3::Bucket
@@ -1397,7 +1402,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help protect data at rest, ensure encryption with AWS Key Management Service (AWS KMS) is enabled for your SageMaker endpoint. Because sensitive data can exist at rest in SageMaker endpoint, enable encryption at rest to help protect that data.
-      ConfigRuleName: itsg33-sagemaker-endpoint-configuration-kms-key-configured
+      ConfigRuleName: itsg33-sagemaker-endpoint-configuration-kms-key-configured-medium
       Source:
         Owner: AWS
         SourceIdentifier: SAGEMAKER_ENDPOINT_CONFIGURATION_KMS_KEY_CONFIGURED
@@ -1406,7 +1411,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help protect data at rest, ensure encryption with AWS Key Management Service (AWS KMS) is enabled for your SageMaker notebook. Because sensitive data can exist at rest in SageMaker notebook, enable encryption at rest to help protect that data.
-      ConfigRuleName: itsg33-sagemaker-notebook-instance-kms-key-configured
+      ConfigRuleName: itsg33-sagemaker-notebook-instance-kms-key-configured-medium
       Source:
         Owner: AWS
         SourceIdentifier: SAGEMAKER_NOTEBOOK_INSTANCE_KMS_KEY_CONFIGURED
@@ -1415,7 +1420,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring that Amazon SageMaker notebooks do not allow direct internet access. By preventing direct internet access, you can keep sensitive data from being accessed by unauthorized users.
-      ConfigRuleName: itsg33-sagemaker-notebook-no-direct-internet-access
+      ConfigRuleName: itsg33-sagemaker-notebook-no-direct-internet-access-high
       Source:
         Owner: AWS
         SourceIdentifier: SAGEMAKER_NOTEBOOK_NO_DIRECT_INTERNET_ACCESS
@@ -1424,7 +1429,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: This rule ensures that AWS Secrets Manager secrets have rotated successfully according to the rotation schedule. Rotating secrets on a regular schedule can shorten the period that a secret is active, reducing the business impact if it is compromised.
-      ConfigRuleName: itsg33-secretsmanager-scheduled-rotation-success-check
+      ConfigRuleName: itsg33-secretsmanager-scheduled-rotation-success-check-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::SecretsManager::Secret
@@ -1436,7 +1441,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: AWS Security Hub helps to monitor unauthorized personnel, connections, devices, and software. AWS Security Hub aggregates, organizes, and prioritizes the security alerts, or findings, from multiple AWS services.
-      ConfigRuleName: itsg33-securityhub-enabled
+      ConfigRuleName: itsg33-securityhub-enabled-high
       Source:
         Owner: AWS
         SourceIdentifier: SECURITYHUB_ENABLED
@@ -1445,7 +1450,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help protect data at rest, ensure that your Amazon Simple Notification Service (Amazon SNS) topics require encryption using AWS Key Management Service (AWS KMS).
-      ConfigRuleName: itsg33-sns-encrypted-kms
+      ConfigRuleName: itsg33-sns-encrypted-kms-medium
       Scope:
         ComplianceResourceTypes:
         - AWS::SNS::Topic
@@ -1457,7 +1462,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Amazon Elastic Compute Cloud (Amazon EC2) security groups can help in the management of network access by providing stateful filtering of ingress and egress network traffic to AWS resources.
-      ConfigRuleName: itsg33-vpc-default-security-group-closed
+      ConfigRuleName: itsg33-vpc-default-security-group-closed-high
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::SecurityGroup
@@ -1469,7 +1474,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: The VPC flow logs provide detailed records for information about the IP traffic going to and from network interfaces in your Amazon Virtual Private Cloud (Amazon VPC).
-      ConfigRuleName: itsg33-vpc-flow-logs-enabled
+      ConfigRuleName: itsg33-vpc-flow-logs-enabled-medium
       Source:
         Owner: AWS
         SourceIdentifier: VPC_FLOW_LOGS_ENABLED
@@ -1478,7 +1483,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Manage access to resources in the AWS Cloud by ensuring common ports are restricted on Amazon Elastic Compute Cloud (Amazon EC2) Security Groups.
-      ConfigRuleName: itsg33-vpc-sg-open-only-to-authorized-ports
+      ConfigRuleName: itsg33-vpc-sg-open-only-to-authorized-ports-medium
       InputParameters:
         authorizedTcpPorts:
           Fn::If:
@@ -1501,7 +1506,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: Redundant Site-to-Site VPN tunnels can be implemented to achieve resilience requirements. It uses two tunnels to help ensure connectivity in case one of the Site-to-Site VPN connections becomes unavailable.
-      ConfigRuleName: itsg33-vpc-vpn-2-tunnels-up
+      ConfigRuleName: itsg33-vpc-vpn-2-tunnels-up-low
       Scope:
         ComplianceResourceTypes:
         - AWS::EC2::VPNConnection
@@ -1513,7 +1518,7 @@ Resources:
     Type: AWS::Config::ConfigRule
     Properties:
       Description: To help with logging and monitoring within your environment, enable AWS WAF (V2) logging on regional and global web ACLs. AWS WAF logging provides detailed information about the traffic that is analyzed by your web ACL.
-      ConfigRuleName: itsg33-wafv2-logging-enabled
+      ConfigRuleName: itsg33-wafv2-logging-enabled-high
       Source:
         Owner: AWS
         SourceIdentifier: WAFV2_LOGGING_ENABLED
@@ -2471,343 +2476,3 @@ Resources:
       Value: !Ref Wafv2LoggingEnabled
       Tier: Intelligent-Tiering
       Description: To help with logging and monitoring within your environment, enable AWS WAF (V2) logging on regional and global web ACLs. AWS WAF logging provides detailed information about the traffic that is analyzed by your web ACL.
-
-  LambdaServiceRole:
-    Type: 'AWS::IAM::Role'
-    Condition: IsDefaultRegion
-    Properties:
-      RoleName: 'config-sechub-lambda-role'
-      AssumeRolePolicyDocument:
-        Version: 2012-10-17
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service:
-                - lambda.amazonaws.com
-            Action:
-              - 'sts:AssumeRole'
-      Policies:
-        - PolicyName: lambda-service-policy
-          PolicyDocument:
-            Statement:
-              - Effect: Allow
-                Action:
-                  - 'securityhub:BatchImportFindings'
-                Resource:
-                  - '*'
-              - Effect: Allow
-                Action:
-                  - 'logs:CreateLogGroup'
-                  - 'logs:CreateLogStream'
-                  - 'logs:PutLogEvents'
-                Resource: '*'
-              - Effect: Allow
-                Action: 
-                  - 'config:DescribeConfigRules'
-                Resource: '*'
-
-  ParameterStoreLambdaServiceRole:
-    Type: AWS::SSM::Parameter
-    Condition: IsDefaultRegion
-    Properties:
-      Name: /aafc/governance/lambdaservicerole
-      Type: String
-      Value: !Ref LambdaServiceRole
-      Tier: Intelligent-Tiering
-      Description: IAM Role for Lambda Service
-
-  ConfigSecHubFunction:
-    Type: AWS::Lambda::Function
-    Condition: IsDefaultRegion
-    Properties:
-      Code:
-        ZipFile: |
-          import boto3
-          SECURITYHUB = boto3.client('securityhub')
-          CONFIG = boto3.client('config')
-          def get_description_of_rule(config_rule_name):
-              """Gather description of config rule."""
-              description = ""
-              try:
-                  response = CONFIG.describe_config_rules(
-                      ConfigRuleNames=[config_rule_name]
-                  )
-                  if 'Description' in response['ConfigRules'][0]:
-                      description = response['ConfigRules'][0]['Description']
-                  else:
-                      description = response['ConfigRules'][0]['ConfigRuleName']
-                  return description
-              except Exception as error:
-                  print("Error: ", error)
-                  raise
-          def get_compliance_and_severity(new_status):
-              """Return compliance status."""
-              status = ['FAILED', 3.0, 30]
-              if new_status == 'COMPLIANT':
-                  status = ['PASSED', 0, 0]
-              return status
-          def map_config_findings_to_sh(event, old_recorded_time):
-              """Create custom finding."""
-              new_findings = []
-              new_status = event['detail']['newEvaluationResult']['complianceType']
-              config_rule_name = event['detail']['configRuleName']
-              compliance_status = get_compliance_and_severity(new_status)
-              description = get_description_of_rule(config_rule_name)
-              remediation_url = (f"""https://{event['detail']['awsRegion']}.console.aws.amazon.com/config/home?region={event['detail']['awsRegion']}&awsc-custsat-override=promptUser#/rules/details?configRuleName={config_rule_name}""")
-              new_findings.append({
-                  "SchemaVersion": "2018-10-08",
-                  "Id": event['id'],
-                  "ProductArn": (f"arn:aws:securityhub:{event['detail']['awsRegion']}:"
-                                f"{event['detail']['awsAccountId']}:"
-                                f"product/{event['detail']['awsAccountId']}/default"),
-                  "GeneratorId": event['detail']['configRuleARN'],
-                  "AwsAccountId": event['detail']['awsAccountId'],
-                  "Types": [
-                      "Software and Configuration Checks/AWS Config Analysis"
-                  ],
-                  "CreatedAt": old_recorded_time,
-                  "UpdatedAt": (event['detail']
-                                ['newEvaluationResult']['resultRecordedTime']),
-                  "Severity": {
-                      "Product": compliance_status[1],
-                      "Normalized": compliance_status[2]
-                  },
-                  "Title": config_rule_name,
-                  "Description": description,
-                  'Remediation': {
-                      'Recommendation': {
-                          'Text': 'For directions on how to fix this issue, see the remediation action on the rule details page in AWS Config console',
-                          'Url': remediation_url
-                      }
-                  },
-                  'Resources': [
-                      {
-                          'Id': event['detail']['resourceId'],
-                          'Type': event['detail']['resourceType'].split(":")[-1],
-                          'Partition': "aws",
-                          'Region': event['detail']['awsRegion']
-                      }
-                  ],
-                  'Compliance': {'Status': compliance_status[0]}
-              })
-              
-              if new_findings:
-                  try:
-                      response = SECURITYHUB.batch_import_findings(Findings=new_findings)
-                      if response['FailedCount'] > 0:
-                          print(
-                              "Failed to import {} findings".format(
-                                  response['FailedCount']))
-                  except Exception as error:
-                      print("Error: ", error)
-                      raise
-          def parse_message(event):
-              """Initialize event logic."""
-              details = event['detail']
-              if (details['messageType'] == 'ComplianceChangeNotification' and
-                      "securityhub.amazonaws.com" not in details['configRuleARN']):
-                  if 'oldEvaluationResult' not in event['detail']:
-                      old_recorded_time = (event['detail']
-                                          ['newEvaluationResult']['resultRecordedTime'])
-                  else:
-                      old_recorded_time = (event['detail']
-                                          ['oldEvaluationResult']['resultRecordedTime'])
-                  map_config_findings_to_sh(event, old_recorded_time)
-              else:
-                  print("Other Notification")
-          def lambda_handler(event, context):
-              """Begin Lambda execution."""
-              print("Event Before Parsing: ", event)
-              print(context)
-              parse_message(event)
-      FunctionName : 'Config-SecHub-Lambda'
-      Handler: 'index.lambda_handler'
-      Role:
-        Fn::GetAtt:
-          - LambdaServiceRole
-          - Arn
-      Runtime: python3.7
-      Timeout: 300
-
-  ConfigSecHubCWRule:
-    Type: AWS::Events::Rule
-    Condition: IsDefaultRegion
-    Properties:
-      Description: This CW rule integrates AWS Config Compliance events with AWS Lambda as a target
-      Name: 'Config-Sechub-CW-Rule'
-      EventPattern:
-        source:
-          - aws.config
-        detail-type:
-          - Config Rules Compliance Change
-        detail:
-          messageType:
-            - ComplianceChangeNotification
-      State: 'ENABLED'
-      Targets:
-        - 
-          Arn: 
-            Fn::GetAtt:
-              - 'ConfigSecHubFunction'
-              - 'Arn'
-          Id: 'TargetFunctionV1'      
-
-  PermissionForEventsToInvokeLambda:
-    Type: AWS::Lambda::Permission
-    Condition: IsDefaultRegion
-    Properties:
-      FunctionName:
-        Ref: 'ConfigSecHubFunction'
-      Action: 'lambda:InvokeFunction'
-      Principal: 'events.amazonaws.com'
-      SourceArn:
-        Fn::GetAtt:
-          - 'ConfigSecHubCWRule'
-          - 'Arn'
-
-  ConfigSecHubFunction2:
-    Type: AWS::Lambda::Function
-    Condition: IsNotDefaultRegion
-    Properties:
-      Code:
-        ZipFile: |
-          import boto3
-          SECURITYHUB = boto3.client('securityhub')
-          CONFIG = boto3.client('config')
-          def get_description_of_rule(config_rule_name):
-              """Gather description of config rule."""
-              description = ""
-              try:
-                  response = CONFIG.describe_config_rules(
-                      ConfigRuleNames=[config_rule_name]
-                  )
-                  if 'Description' in response['ConfigRules'][0]:
-                      description = response['ConfigRules'][0]['Description']
-                  else:
-                      description = response['ConfigRules'][0]['ConfigRuleName']
-                  return description
-              except Exception as error:
-                  print("Error: ", error)
-                  raise
-          def get_compliance_and_severity(new_status):
-              """Return compliance status."""
-              status = ['FAILED', 3.0, 30]
-              if new_status == 'COMPLIANT':
-                  status = ['PASSED', 0, 0]
-              return status
-          def map_config_findings_to_sh(event, old_recorded_time):
-              """Create custom finding."""
-              new_findings = []
-              new_status = event['detail']['newEvaluationResult']['complianceType']
-              config_rule_name = event['detail']['configRuleName']
-              compliance_status = get_compliance_and_severity(new_status)
-              description = get_description_of_rule(config_rule_name)
-              remediation_url = (f"""https://{event['detail']['awsRegion']}.console.aws.amazon.com/config/home?region={event['detail']['awsRegion']}&awsc-custsat-override=promptUser#/rules/details?configRuleName={config_rule_name}""")
-              new_findings.append({
-                  "SchemaVersion": "2018-10-08",
-                  "Id": event['id'],
-                  "ProductArn": (f"arn:aws:securityhub:{event['detail']['awsRegion']}:"
-                                f"{event['detail']['awsAccountId']}:"
-                                f"product/{event['detail']['awsAccountId']}/default"),
-                  "GeneratorId": event['detail']['configRuleARN'],
-                  "AwsAccountId": event['detail']['awsAccountId'],
-                  "Types": [
-                      "Software and Configuration Checks/AWS Config Analysis"
-                  ],
-                  "CreatedAt": old_recorded_time,
-                  "UpdatedAt": (event['detail']
-                                ['newEvaluationResult']['resultRecordedTime']),
-                  "Severity": {
-                      "Product": compliance_status[1],
-                      "Normalized": compliance_status[2]
-                  },
-                  "Title": config_rule_name,
-                  "Description": description,
-                  'Remediation': {
-                      'Recommendation': {
-                          'Text': 'For directions on how to fix this issue, see the remediation action on the rule details page in AWS Config console',
-                          'Url': remediation_url
-                      }
-                  },
-                  'Resources': [
-                      {
-                          'Id': event['detail']['resourceId'],
-                          'Type': event['detail']['resourceType'].split(":")[-1],
-                          'Partition': "aws",
-                          'Region': event['detail']['awsRegion']
-                      }
-                  ],
-                  'Compliance': {'Status': compliance_status[0]}
-              })
-              
-              if new_findings:
-                  try:
-                      response = SECURITYHUB.batch_import_findings(Findings=new_findings)
-                      if response['FailedCount'] > 0:
-                          print(
-                              "Failed to import {} findings".format(
-                                  response['FailedCount']))
-                  except Exception as error:
-                      print("Error: ", error)
-                      raise
-          def parse_message(event):
-              """Initialize event logic."""
-              details = event['detail']
-              if (details['messageType'] == 'ComplianceChangeNotification' and
-                      "securityhub.amazonaws.com" not in details['configRuleARN']):
-                  if 'oldEvaluationResult' not in event['detail']:
-                      old_recorded_time = (event['detail']
-                                          ['newEvaluationResult']['resultRecordedTime'])
-                  else:
-                      old_recorded_time = (event['detail']
-                                          ['oldEvaluationResult']['resultRecordedTime'])
-                  map_config_findings_to_sh(event, old_recorded_time)
-              else:
-                  print("Other Notification")
-          def lambda_handler(event, context):
-              """Begin Lambda execution."""
-              print("Event Before Parsing: ", event)
-              print(context)
-              parse_message(event)
-      FunctionName : 'Config-SecHub-Lambda'
-      Handler: 'index.lambda_handler'
-      Role: 
-        !Sub  'arn:aws:iam::${AWS::AccountId}:role/config-sechub-lambda-role'
-      Runtime: python3.7
-      Timeout: 300
-
-  ConfigSecHubCWRule2:
-    Type: AWS::Events::Rule
-    Condition: IsNotDefaultRegion
-    Properties:
-      Description: This CW rule integrates AWS Config Compliance events with AWS Lambda as a target
-      Name: 'Config-Sechub-CW-Rule'
-      EventPattern:
-        source:
-          - aws.config
-        detail-type:
-          - Config Rules Compliance Change
-        detail:
-          messageType:
-            - ComplianceChangeNotification
-      State: 'ENABLED'
-      Targets:
-        - 
-          Arn: 
-            Fn::GetAtt:
-              - 'ConfigSecHubFunction2'
-              - 'Arn'
-          Id: 'TargetFunctionV1'      
-
-  PermissionForEventsToInvokeLambda2:
-    Type: AWS::Lambda::Permission
-    Condition: IsNotDefaultRegion
-    Properties:
-      FunctionName:
-        Ref: 'ConfigSecHubFunction2'
-      Action: 'lambda:InvokeFunction'
-      Principal: 'events.amazonaws.com'
-      SourceArn:
-        Fn::GetAtt:
-          - 'ConfigSecHubCWRule2'
-          - 'Arn'
