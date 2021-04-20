@@ -41,22 +41,6 @@ def org_accountid_named_security():
       security_account_id = filtered_response['Id']
   return security_account_id
 
-def org_service_access_verifyconfigservice(event):
-  logger.info("Verifying Config Servce is enabled")
-  paginator = organizations.get_paginator('list_aws_service_access_for_organization')
-  response_iterators = paginator.paginate()
-  filtered_iterator = response_iterators.search("EnabledServicePrincipals[?ServicePrincipal == `config.amazonaws.com`][]")
-  mresponse = None
-  for filtered_response in filtered_iterator:
-    mresponse = filtered_response
-  if not len(mresponse):
-    logger.error("Config Service not present")
-    code_pipeline.put_job_failure_result(jobId=event["CodePipeline.job"].get("id"))
-    return "Config Service not present"
-  else:
-    logger.info("Config Service already enabled")
-  return mresponse
-
 def verify_securityhub_enabled():
   try:
     logger.info('Calling Describe SecurityHub in local account')
@@ -252,7 +236,6 @@ def lambda_handler(event, context):
   logger.debug("Lambda_handler Event")
   logger.debug(event)
   print("boto3 version: ",boto3_version)
-  org_service_access_verifyconfigservice(event)
   verify_securityhub_enabled()
   org_accountid_named_security()
   enable_securityhub_orgadmin(event)

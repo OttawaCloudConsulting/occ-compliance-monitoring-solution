@@ -94,36 +94,5 @@ lambda_sechub_enabler = {
     "handler"                       = "sechub_enabler.lambda_handler"
     "memory_size"                   = 128
     "runtime"                       = "python3.8"
-    "timeout"                       = 3
-}
-
-iam_role_lambda_config_sechub = {
-    "path"                          = "/"
-    "name"                          = "config-sechub-lambda-role"
-    "assume_role_policy"            = "{\"Version\":\"2012-10-17\",\"Statement\":[{\"Effect\":\"Allow\",\"Principal\":{\"Service\":\"lambda.amazonaws.com\"},\"Action\":\"sts:AssumeRole\"}]}"
-    "max_session_duration"          = 3600
-}
-
-iam_policy_lambda_configsechub = {
-    "policy"                        = "{\"Statement\":[{\"Action\":[\"securityhub:BatchImportFindings\"],\"Resource\":[\"*\"],\"Effect\":\"Allow\"},{\"Action\":[\"logs:CreateLogGroup\",\"logs:CreateLogStream\",\"logs:PutLogEvents\"],\"Resource\":\"*\",\"Effect\":\"Allow\"},{\"Action\":[\"config:DescribeConfigRules\"],\"Resource\":\"*\",\"Effect\":\"Allow\"}]}"
-}
-
-eventsrule_config_sechub = {
-    "name"                          = "Config-Sechub-CW-Rule"
-    "description"                   = "This CW rule integrates AWS Config Compliance events with AWS Lambda as a target"
-    "event_pattern"                 = "{\"detail-type\":[\"Config Rules Compliance Change\"],\"source\":[\"aws.config\"],\"detail\":{\"messageType\":[\"ComplianceChangeNotification\"]}}"
-}
-
-cloudwatch_event_target_config_sechub = {
-    "rule"                          = "Config-Sechub-CW-Rule"
-}
-
-lambda_function_config_sechub = {
-    "artifactzip"                   = "lambda_map_config_findings_to_sechub.py.zip"
-    "description"                   = "Forwards Config Rule findings to Security Hub"
-    "function_name"                 = "Config-SecHub-Lambda"
-    "handler"                       = "lambda_function.lambda_handler"
-    "memory_size"                   = 128
-    "runtime"                       = "python3.7"
-    "timeout"                       = 300
+    "timeout"                       = 90
 }
