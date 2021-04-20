@@ -5,9 +5,11 @@
 ## Summary
 
 The OCC Compliance Monitoring Solution is deployed to include the following primary services;
-  + AWS Config - NIST 800-53 Rules with customized definitions
+  + AWS Config - Rules based on NIST 800-53 with customized definitions
   + Security Hub
   + Parameter Store
+  + Lambda Function - Forwards AWS Config changes to Security Hub and assigns Severity
+  + Lambda Function - Enables Organizational Delegated Administration to 'Security' account
 
 ![Compliance Monitoring Solution](./images/itsg_compliance_monitoring_solution_overview.png)
 
@@ -15,149 +17,69 @@ The OCC Compliance Monitoring Solution is deployed to include the following prim
 
 #### Order of operations
 
-+ CLI to configure AWS Organizations 
-
-#### Direct API & CLI Functions
-
-+ Create AWS Account 'Security' as Organizations Delegated Administrator 
++ Validation that Security Hub is *NOT* enabled in any AWS Accounts
++ Validation that Organizational Service Control Policies permit the Security Hub actions
++ Terraform parameter configuration
++ Creation of CodePipeline artifact from ./src folder into ./artifacts folder
++ Creation of Lambda Forwarder artifact from ./src folder into ./artifacts folder
++ Deployment of Terraform Code
 
 #### IaC Templates
 
-*Organization Root Account (MRA)*
-+ AWSC Config AWS Stackset (Rules & Import Findings)
+| Short Name | Type | Purpose | filename |
+| --- | --- |--- | --- |
+| Pipeline Deployment | Terraform (v 0.15) | Deploys Pipeline and copies artifacts | ./pipeline.tf |
+| AWS Security Hub | Cloudformation |Enables Security Hub across AWS Organization | ./src/enable-sechub.yml |
+| ITSG Config Rules | Cloudformation |Deploys AWS Config Rules to monitor resources for compliance | ./src/config-rules.yml |
+| SecHub Forwarder | Cloudformation |Deploys the Lambda Function that forwards AWS Config 'change-of-state' results to Security Hub | ./src/config_sechub_integration.yml |
+| SecHub Forwarder | Lambda (Python 3.8) | Lambda Python script that assigns severity to AWS Config results and forwards to Security Hub service | ./src/lambda_map_config_findings_to_sechub.py |
+| SecHub Enabler | Lambda (Python 3.8) | Lambda Python script to configure Security Hub Delegated Admin to the AWS Account named 'Security' | ./src/sechub_enabler.py |
 
-## AWS Config Rules
+#### CloudFormation StackSets
 
-The AWS Config Rules are derived from the NIST 800-53 Conformance Pack.  They are deployed individually to permit us to link to an SSM Parameter Store which is tagged with the ITSG Control ID, as well integrate remediation actions as required.  ITSG rules are deployed only into the Canada region, as this is the only region in which we have deployed infrastrucutre.
+AWS CloudFormation StackSets enables you to create, update, or delete stacks across multiple AWS accounts and AWS Regions with a single operation. StackSets integration with AWS Organizations enables you to create stack sets with service-managed permissions, using a service-linked role that has the relevant permission in each member account. This lets you deploy stack instances to member accounts in your organization. You don't have to create the necessary AWS Identity and Access Management roles; StackSets creates the IAM role in each member account on your behalf. You can also choose to enable automatic deployments to accounts that are added to your organization in the future.
+
+With trusted access between StackSets and Organizations enabled, the management account has permissions to create and manage stack sets for your organization. The management account can register up to five member accounts as delegated administrators. With trusted access enabled, delegated administrators also have permissions to create and manage stack sets for your organization. Stack sets with service-managed permissions are created in the management account, including stack sets that are created by delegated administrators. 
+
+Our deployment via CloudFormation StackSets, against the Organization Root, enables a simplistic 'set-it-and-forget-it' approach for deployment.  StackSets will be deployed to existing AWS Accounts, and any additional AWS Accounts that are creaeted or onboarded to the Organization.
+
+### AWS Config Rules
+
+The AWS Config Rules are derived from the NIST 800-53 Conformance Pack.  They are deployed individually to permit us to link to an SSM Parameter Store which is tagged with the ITSG Control ID, as well integrate remediation actions as required.  By default there are no severity mappings available with AWS Config Rules, so we create a suffix with the severity.
+
+Our naming convention introduces a prefix to define the rule type, and a suffix to define the severity.
+
+![Config Rule Naming Convention](./images/awsconfig_naming_convention.png)
+
+The AWS Config Rules that are deployed are visible to roles that have permissions to work with AWS Config Rules.
 
 ![ITSG Config Rules](./images/awsconfig00.png)
 
-### Pre-requisites
+### Security Hub
 
-+ Authorization - Delegated Administrator:
-  Authorization is not required when using **Add my organization** to select source accounts.
-  - You must be signed in to the management account or a registered delegated administrator and all the features must be enabled in your organization. If the caller is a management account, AWS Config calls *EnableAwsServiceAccess* API to [enable integration](https://docs.aws.amazon.com/organizations/latest/APIReference/API_EnableAWSServiceAccess.html) between AWS Config and AWS Organizations. If the caller is a registered delegated administrator, AWS Config calls *ListDelegatedAdministrators* API to verify whether the caller is a valid delegated administrator.
-  - Ensure that the management account registers delegated administrator for AWS Config service principle name (config.amazonaws.com) before the delegated administrator creates an aggregator. To register a delegated administrator, see [Register a Delegated Administrator](https://docs.aws.amazon.com/config/latest/developerguide/set-up-aggregator-cli.html#register-a-delegated-administrator-cli).
+The Security Hub is configured to display dashboard based reports of Findings from default conformance packs.  The default packs can be utilised, but we supply a custom template replacing them to integrate findings from the Config Rules with specific tags to allocate them as ITSG validations.
 
-[Register a Delegated Administrator](https://docs.aws.amazon.com/config/latest/developerguide/set-up-aggregator-cli.html#register-a-delegated-administrator-cli)
-
-
-## Security Hub
-
-The Security Hub is configured to display dashboard based reports of Findings from default conformance packs.  The default packs are not utilised, with a custom template replacing them to integrate findings from the Config Rules.
+The Security Hub dashboard allows us to easily filter the Findings based on parameters, including the 'Starts with' filter to select 'itsg-' only rules.
 
 ![Security Hub Dashboard](./images/awssecurityhub00.png)
-![ITSG Compliance Dashboard](./images/aws_securityhub_dashboard.png)
 
-### Pre-requisites
+Additional dashboarding can be created, for example reporting on findings by 'Severity.'
 
-+ AWS Config:
-    The service must be enabled on all accounts, with recording enabled reccommended.  This is the default status for AWS Landing Zone deployments, and no action is required
-+ IAM Service Linked Role:  iam-service-linkedrole_AWSServiceRoleForSecurityHub
-    This role is deployed automatically if the service has been manually deployed in the past, and therefore may be pre-exisinting.
-+ Accounts and Regions:
-    If you use AWS Organizations to manage accounts, the organization management account designates the Security Hub administrator account. The Security Hub administrator account must be the same in all Regions. However, the organization management account must designate the Security Hub administrator account separately in each Region. The Security Hub administrator account also manages member accounts separately for each Region.
-    For member accounts created by invitation, the master-member account association is created only in the Region that the invitation is sent from. The master account must enable Security Hub in each Region that you want to use it in. The master account then invites each account to associate as a member account in that Region.
-+ Coordinating master accounts across services:
-    Security Hub aggregates findings from various AWS services, such as Amazon GuardDuty, Amazon Inspector, and Amazon Macie. Security Hub also allows users to pivot from a GuardDuty finding to start an investigation in Amazon Detective.
-    However, the master-member relationships that you set up in these other services do not automatically apply to Security Hub. Security Hub recommends that you use the same account as the master account for all of these services. This master account should be an account that is responsible for security tools. The same account should also be the aggregator account for AWS Config.
+![ITSG Compliance Dashboard Severity](./images/aws_securityhub_dashboard.png)
 
-## Security Hub Deployment
+#### Aggregated View
 
-### Manual Steps - Not supported via IaC
+The Security Hub Service utilises the AWS Organizations service to provide an aggregated view of ALL AWS Account Security Hub findings from the Security Account.  This provides the SecOps team with a consolidated dashboard across the entire AWS Landing Zone for all security findings.  Implementation within the Security Account provides a level of abstracted access that can only be accessed from SecOps roles with valid permissions.
 
-#### Designating a Security Hub administrator account (Security Hub API, AWS CLI)
+![Consolidated Dashboard](./images/aws_securityhub_accounts.png)
 
-To designate the Security Hub administrator account, you can use an API call or the AWS Command Line Interface. You must use the organization management account (Master Root Account) credentials.
+## Deployment Process
 
-To designate the Security Hub administrator account (Security Hub API, AWS CLI)
+As of Terraform 0.15, CloudFormation StackSets cannot be deployed against either OU or ROOT ids using AWS Organizations, and only iteratively against an expanding list of known accounts.  Whilst our preferred method of resource management and deployment is Terraform, utilizing just Terraform would require continuous running of the code to detect new accounts, and potential gaps in coverage between AWS Account creation and solution deployment.
 
-**Security Hub API** – Use the *EnableOrganizationAdminAccount* operation. You must provide the AWS account ID of the Security Hub administrator account.
+The deployment of StackSets against AWS Organizations is moved into a Terraform managed CodePipeline, with discrete stages for each of the types of components deployed.  This enables us a more granular method of management of the solution and the ability to deploy change with small targeted updates made only within the Pipeline steps with chage, whilst the steps that remain the same execute with no change required.
 
-**AWS CLI** – At the command line, run the *enable-organization-admin-account* command.
-
-```bash
-aws securityhub enable-organization-admin-account --admin-account-id <admin account ID>
-```
-
-Example
-
-```bash
-aws securityhub enable-organization-admin-account --admin-account-id 777788889999
-```
-
-#### Removing a Security Hub administrator account (Security Hub API, AWS CLI)
-
-To remove the Security Hub administrator account, you can use an API call or the AWS Command Line Interface. You must use the organization management account credentials.
-
-When you use the API or AWS CLI to remove the Security Hub administrator account, it is only removed in the Region where the API call or command was issued.
-
-To remove the Security Hub administrator account (Security Hub API, AWS CLI)
-
-**Security Hub API** – Use the *DisableOrganizationAdminAccount* operation. You must provide the account ID of the Security Hub administrator account.
-
-**AWS CLI** – At the command line, run the *disable-organization-admin-account* command.
-
-```bash
-aws securityhub disable-organization-admin-account --admin-account-id <admin account ID>
-```
-Example
-```bash
-aws securityhub disable-organization-admin-account --admin-account-id 777788889999
-```
-
-#### Enabling Security Hub automatically for new organization accounts (Security Hub API, AWS CLI)
-
-To determine whether to automatically enable new organization accounts, the Security Hub administrator account can use the Security Hub API or the AWS Command Line Interface.
-
-To automatically enable new organization accounts
-
-**Security Hub API** – Use the UpdateOrganizationConfiguration operation. To automatically enable new organization accounts, set autoEnable to true.
-
-**AWS CLI** – At the command line, run the update-organization-configuration command.
-```bash
-aws securityhub update-organization-configuration --auto-enable
-```
-
-## Config Rules Deployment
-
-### Template Design
-
-The Config Rules that constitute the NIST 800-53 pack have been extracted and converted into standalone rules, deployed within a single template.  The rules have a truncated copy of the *'Rule Description'* added for ease of reference.
-
-Whilst the Config Rules have been reviewed independently by local team members, there is no current attestation to the ITSG standards, and these should be confirmed by deployment security teams.
-
-The template is designed to be deployed as part of an AWS CloudFormation StackSet, applied to the AWS Organization.  The deployment method will ensure automated inclusion into the monitoring solution, and a single code template to manage the rules and components.
-
-The stackset exports the Config Rule ARNs into an SSM Parameter Store, which will allow us to integrate any future IaC in an automated manner.  Within any secondary template, the rules can be referenced without knowing their specific ARN, requiring manual parameter entry or complex code conditioning using additional functions.
-
-[Use of SSM Parameters in Cloudformation](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/dynamic-references.html)
-```yaml
-Ec2Instance: 
-  Type: AWS::EC2::Instance
-  Properties: 
-    ImageId: '{{resolve:ssm:/aafc/exampleparameterami:1}}' 
-    InstanceType: t2.micro
-```
-
-[Use of SSM Parameters in Terraform](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter)
-```json
-data "aws_ssm_parameter" "ami" {
-  name = "/aafc/exampleparameterami"
-}
-
-resource "aws_instance" "myec2" {
-  ami           = "${data.aws_ssm_parameter.ami.value}" # pull value from parameter store
-  instance_type = "t2.micro"
-}
-```
-
-
-### Aggregation
-
-In addition to the aggregation of the Security Hub findings, we aggregate the AWS Config Rules into the Security account.  This provides a *single pane of glass* view into all deployed rules, including those that are not forwarded to the Security Hub.  
-
-**TBD**
+![Implementation Design](.images/../images/Implementation_Design.png)
 
 ## Appendices
 
