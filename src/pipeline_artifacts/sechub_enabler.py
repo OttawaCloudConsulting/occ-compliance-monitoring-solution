@@ -128,13 +128,13 @@ def enable_security_hub_auto_enable_in_remote_account():
           )
     logger.info("Enabling Security account as delegated admin")
     logger.info("Configuring Auto Enable for new Accounts")
-    securityhubremote.update_organization_configuration(AutoEnable=True)
+    securityhubremote.update_organization_configuration(AutoEnable=False)
     remote_check_if_account_present()
   except botocore.exceptions.ClientError as error:
     if error.response['Error']['Code'] == 'ResourceConflictException':
       logger.info("Enabling Security account as delegated admin")
       logger.info("Configuring Auto Enable for new Accounts")
-      securityhubremote.update_organization_configuration(AutoEnable=True)
+      securityhubremote.update_organization_configuration(AutoEnable=False)
       logger.info("Checking Member account status")
       remote_check_if_account_present()
 

@@ -1,6 +1,14 @@
 import boto3
+import os
+import logging
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.DEBUG)
+logger.setLevel(logging.INFO)
+
 SECURITYHUB = boto3.client('securityhub')
 CONFIG = boto3.client('config')
+SNS = boto3.client('sns')
 def get_description_of_rule(config_rule_name):
     """Gather description of config rule."""
     description = ""
@@ -16,7 +24,7 @@ def get_description_of_rule(config_rule_name):
     except Exception as error:
         print("Error: ", error)
         raise
-def get_compliance_and_severity(config_rule_name, new_status):
+def get_compliance_and_severity(event, config_rule_name, new_status):
     """Return compliance status & severity."""
     # config_rule_name = event['detail']['configRuleName']
     rule_severity = config_rule_name.split('-')[-1]
@@ -24,24 +32,30 @@ def get_compliance_and_severity(config_rule_name, new_status):
     print("Severity:", rule_severity)
     # get_compliance_and_severity(new_status,rule_severity)
     if new_status == 'COMPLIANT':
-        status = ['PASSED', 0, 0]
+        status = ['PASSED', 'INFORMATIONAL', 0]
     elif ((new_status == 'NON_COMPLIANT') and (rule_severity == 'low')):
-        status = ['FAILED', 'low', 30]
+        logger.info("Set severity %s...", rule_severity)
+        status = ['FAILED', 'LOW', 30]
     elif ((new_status == 'NON_COMPLIANT') and (rule_severity == 'medium')):
-        status = ['FAILED', 'medium', 60]
+        logger.info("Set severity %s...", rule_severity)
+        status = ['FAILED', 'MEDIUM', 60]
     elif ((new_status == 'NON_COMPLIANT') and (rule_severity == 'high')):
-        status = ['FAILED', 'high', 90]
+        logger.info("Set severity %s and create alert...", rule_severity)
+        status = ['FAILED', 'HIGH', 80]
+        sns_alert(event, rule_severity)
     elif ((new_status == 'NON_COMPLIANT') and (rule_severity == 'critical')):
-        status = ['FAILED', 'critical', 100]
+        logger.info("Set severity %s and create alert...", rule_severity)
+        status = ['FAILED', 'CRITICAL', 100]
+        sns_alert(event, rule_severity)
     else:
-      status = ['FAILED', 3.0, 30]
+        status = ['FAILED', 'LOW', 40]
     return status
 def map_config_findings_to_sh(event, old_recorded_time):
     """Create custom finding."""
     new_findings = []
     new_status = event['detail']['newEvaluationResult']['complianceType']
     config_rule_name = event['detail']['configRuleName']
-    compliance_status = get_compliance_and_severity(config_rule_name, new_status)
+    compliance_status = get_compliance_and_severity(event, config_rule_name, new_status)
     description = get_description_of_rule(config_rule_name)
     remediation_url = (f"""https://{event['detail']['awsRegion']}.console.aws.amazon.com/config/home?region={event['detail']['awsRegion']}&awsc-custsat-override=promptUser#/rules/details?configRuleName={config_rule_name}""")
     new_findings.append({
@@ -60,7 +74,7 @@ def map_config_findings_to_sh(event, old_recorded_time):
                       ['newEvaluationResult']['resultRecordedTime']),
         "Severity": {
             "Original": str(compliance_status[1]),
-            "Normalized": compliance_status[2]
+            "Label": compliance_status[1]
         },
         "Title": config_rule_name,
         "Description": description,
@@ -84,6 +98,7 @@ def map_config_findings_to_sh(event, old_recorded_time):
     if new_findings:
         try:
             response = SECURITYHUB.batch_import_findings(Findings=new_findings)
+            logger.info("Response: \n %s", response)
             if response['FailedCount'] > 0:
                 print(
                     "Failed to import {} findings".format(
@@ -105,8 +120,16 @@ def parse_message(event):
         map_config_findings_to_sh(event, old_recorded_time)
     else:
         print("Other Notification")
+def sns_alert(event, rule_severity):
+  var_TopicArn =  os.environ['TOPICARN']
+  logger.info("SNS Notification from alert severity %s...", rule_severity)
+  response = SNS.publish(
+    TopicArn=var_TopicArn,
+    Message=str(f"NIST Compliance Alert \nSeverity = {rule_severity} \nConfigRule={event['detail']['configRuleName']} \nAccountId = {event['detail']['awsAccountId']} \nRegion = {event['detail']['awsRegion']} \nResourceType= {event['detail']['newEvaluationResult']['evaluationResultIdentifier']['evaluationResultQualifier']['resourceType']} \nResourceId= {event['detail']['newEvaluationResult']['evaluationResultIdentifier']['evaluationResultQualifier']['resourceId']} \n"),
+    Subject=rule_severity
+  )
+  logger.info("Response: \n %s", response)
 def lambda_handler(event, context):
     """Begin Lambda execution."""
     print("Event Before Parsing: ", event)
-    print(context)
     parse_message(event)

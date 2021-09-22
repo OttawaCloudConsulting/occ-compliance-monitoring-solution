@@ -1,0 +1,119 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: >-
+  Enabled Security Hub across AWS Organization
+  Deployed via pipeline with 100% failure tolerance to support auto-deployment elsewhere
+# Metadata: 
+
+Parameters: 
+  pDefaultRegion:
+    Type: String
+    Default: ca-central-1
+  IAMRoleName:
+    Type: String
+    Default: config-sechub-lambda-role
+  IAMRoleNameStandardsManager:
+    Type: String
+    Default: securityhub-standards-manager
+  pDefaultAccountId:
+    Type: String 
+    Description: Deployment AccountId (usually MRA)
+  pLambdaRoleToTrust:
+    Type: String
+    Description: Role that Standards Manager Lambda executes from
+# Mappings: 
+
+Conditions: 
+## Added to handle multi-region deployment
+  IsDefaultRegion: !Equals 
+    - !Ref pDefaultRegion
+    - !Ref "AWS::Region"
+  IsNotDefaultRegion: 
+    !Not [!Equals [!Ref pDefaultRegion, !Ref "AWS::Region"]]
+
+Resources: 
+  SecurityHub:
+    Type: AWS::SecurityHub::Hub
+
+  LambdaServiceRole:
+    Type: 'AWS::IAM::Role'
+    Condition: IsDefaultRegion
+    Properties:
+      RoleName: !Ref IAMRoleName
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: lambda-service-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'securityhub:BatchImportFindings'
+                Resource:
+                  - '*'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+              - Effect: Allow
+                Action:
+                  - 'config:DescribeConfigRules'
+                Resource: '*'
+  StandardsManagerRole:
+    Type: 'AWS::IAM::Role'
+    Condition: IsDefaultRegion
+    Properties:
+      RoleName: !Ref IAMRoleNameStandardsManager
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS:
+                - !Sub arn:aws:iam::${pDefaultAccountId}:root
+            Action:
+              - 'sts:AssumeRole'
+            Condition:
+              ArnLike:
+                aws:PrincipalARN:
+                  - !Ref pLambdaRoleToTrust
+      Policies:
+        - PolicyName: lambda-service-policy
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'securityhub:*'
+                Resource:
+                  - '*'
+              - Effect: Allow
+                Action:
+                  - 'logs:CreateLogGroup'
+                  - 'logs:CreateLogStream'
+                  - 'logs:PutLogEvents'
+                Resource: '*'
+  SNSPublishIAMPolicy:
+    Type: AWS::IAM::Policy
+    Condition: IsDefaultRegion
+    Properties: 
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sns:Publish'
+            Resource:
+              - '{{resolve:ssm:/org/member/local_sns_arn:1}}'
+      PolicyName: PublishSToNS
+      Roles: 
+        - !Ref StandardsManagerRole
+
+# Outputs:
