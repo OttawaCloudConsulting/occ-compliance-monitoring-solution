@@ -1,6 +1,6 @@
 # Compliance Monitoring Solution
 
-[TOC]
+[[_TOC_]]
 
 ## Summary
 
